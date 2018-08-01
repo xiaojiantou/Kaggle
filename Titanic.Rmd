@@ -1,0 +1,69 @@
+---
+title: "Kaggle-Titanic"
+author: "Xiaojiantou"
+date: "7/30/2018"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+```{r load data}
+train = data.frame(read.csv(file = "/Users/arrowlittle/Desktop/titanic\ data/train.csv", header = TRUE))
+test = data.frame(read.csv(file = "/Users/arrowlittle/Desktop/titanic\ data/test.csv", header = TRUE))
+```
+
+
+```{r dummy variable}
+library(mlr)
+train$Pclass = factor(train$Pclass)
+test$Pclass = factor(test$Pclass)
+```
+
+```{r dummy for Sex}
+train$Sex = ifelse(train$Sex == "female", 0, 1)
+test$Sex = ifelse(test$Sex == "female", 0, 1)
+```
+
+```{r dummy for Embarked}
+train$CEmbark = ifelse(train$Embarked == "C", 1, 0)
+train$SEmbark = ifelse(train$Embarked == "S", 1, 0)
+train$QEmbark = ifelse(train$Embarked == "Q", 1, 0)
+test$CEmbark = ifelse(test$Embarked == "C", 1, 0)
+test$SEmbark = ifelse(test$Embarked == "S", 1, 0)
+test$QEmbark = ifelse(test$Embarked == "Q", 1, 0)
+```
+
+```{r dummy for Pclass}
+train = createDummyFeatures(train, cols="Pclass")
+test = createDummyFeatures(test, cols="Pclass")
+```
+
+```{r data cleaning}
+train.fit = train
+train.fit$Name = NULL
+train.fit$Ticket = NULL
+train.fit$Cabin = NULL
+test.fit = test
+test.fit$Name = NULL
+test.fit$Ticket = NULL
+test.fit$Cabin = NULL
+```
+
+```{r train model}
+glm.fit = glm(Survived ~ Sex, data = train.fit)
+```
+
+```{r}
+pred.prob = predict(glm.fit, test.fit)
+pred.fac = ifelse(pred.prob>.5, 1, 0)
+res = data.frame(cbind(test$PassengerId, pred.fac))
+colnames(res) <- c("PassengerID","Survived")
+```
+
+```{r save}
+write.csv(res, file="/Users/arrowlittle/Desktop/titanic\ data/submission.csv")
+```
+
